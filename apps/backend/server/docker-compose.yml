@@ -1,12 +1,12 @@
 services:
-  qingmo-postgresql:
+  seqlite-postgres:
     image: postgres:18
     ports:
-      - '${DB_PORT}:5432'
+      - '${POSTGRES_PORT}:5432'
     environment:
-      POSTGRES_USER: '${DB_USER}'
-      POSTGRES_PASSWORD: '${DB_PASSWORD}'
-      POSTGRES_DB: '${DB_NAME}'
+      POSTGRES_USER: '${POSTGRES_USER}'
+      POSTGRES_PASSWORD: '${POSTGRES_PASSWORD}'
+      POSTGRES_DB: '${POSTGRES_NAME}'
       TZ: Asia/Shanghai
       PGTZ: Asia/Shanghai
     command:
@@ -16,10 +16,10 @@ services:
       - -c
       - log_timezone=Asia/Shanghai
     volumes:
-      - qingmo-postgresql-data:/var/lib/postgresql
+      - seqlite-postgres-data:/var/lib/postgresql
     networks:
-      - qingmo-network
-  qingmo-redis:
+      - seqlite-network
+  seqlite-redis:
     image: redis:8
     ports:
       - '${REDIS_PORT}:6379'
@@ -30,14 +30,14 @@ services:
       - --requirepass
       - '${REDIS_PASSWORD}'
     volumes:
-      - qingmo-redis-data:/data
+      - seqlite-redis-data:/data
     networks:
-      - qingmo-network
+      - seqlite-network
 
 networks:
-  qingmo-network:
+  seqlite-network:
     driver: bridge
 
 volumes:
-  qingmo-postgresql-data:
-  qingmo-redis-data:
+  seqlite-postgres-data:
+  seqlite-redis-data:

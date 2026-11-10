@@ -1,56 +1,76 @@
 package middleware
 
 import (
-	"errors"
-	"net/http"
+	"qingmo-server/internal/errs"
+	"qingmo-server/internal/response"
+	"qingmo-server/internal/security"
 	"strconv"
 	"strings"
-
-	"doc-server/internal/auth"
-	"doc-server/internal/errs"
-	"doc-server/internal/response"
 
 	"github.com/gin-gonic/gin"
 )
 
-func Auth(tokenManager *auth.TokenManager) gin.HandlerFunc {
+const (
+	ctxKeyUserID    = "user_id"
+	ctxKeySessionID = "session_id"
+	bearerPrefix    = "Bearer "
+)
+
+func Auth(tokenManager *security.TokenManager) gin.HandlerFunc {
 	return func(c *gin.Context) {
-		header := c.GetHeader("Authorization")
-		if !strings.HasPrefix(header, "Bearer ") {
-			response.Error(c, http.StatusUnauthorized, errs.ErrUnauthorized.Code, errs.ErrUnauthorized.Message)
-			c.Abort()
+		// 从请求头中获取token
+		tokenHeader := c.GetHeader("Authorization")
+		if tokenHeader == "" {
+			response.WriteError(
+				c,
+				errs.New(
+					errs.KindUnauthorized,
+					"authorization header is required",
+				),
+			)
+			return
+		}
+		if !strings.HasPrefix(tokenHeader, bearerPrefix) {
+			response.WriteError(c, errs.New(
+				errs.KindUnauthorized,
+				"authorization header must use Bearer scheme",
+			))
 			return
 		}
 
-		rawToken := strings.TrimSpace(
-			strings.TrimPrefix(header, "Bearer "),
+		token := strings.TrimSpace(
+			strings.TrimPrefix(tokenHeader, bearerPrefix),
 		)
-
-		claims, err := tokenManager.Parse(c.Request.Context(), rawToken, auth.TokenTypeAccess)
+		if token == "" {
+			response.WriteError(c, errs.New(
+				errs.KindUnauthorized,
+				"bearer token is empty",
+			))
+			return
+		}
+		// 验证token
+		claims, err := tokenManager.VerifyJWT(
+			c.Request.Context(),
+			token,
+			security.TokenTypeAccess,
+		)
 		if err != nil {
-			if errors.Is(err, errs.ErrTokenInvalid) {
-				response.Error(c, http.StatusUnauthorized, errs.ErrTokenInvalid.Code, errs.ErrTokenInvalid.Message)
-			} else {
-				_ = c.Error(err)
-				response.Error(
-					c,
-					http.StatusInternalServerError,
-					errs.ErrInternal.Code,
-					errs.ErrInternal.Message,
-				)
-			}
-			c.Abort()
+			response.WriteError(c, err)
 			return
 		}
 
 		userID, err := strconv.ParseUint(claims.Subject, 10, 64)
 		if err != nil {
-			response.Error(c, http.StatusUnauthorized, errs.ErrCredentialsError.Code, errs.ErrCredentialsError.Message)
-			c.Abort()
+			response.WriteError(c, errs.Wrap(
+				errs.KindUnauthorized,
+				"invalid subject in token",
+				err,
+			))
 			return
 		}
 
-		c.Set("user_id", uint(userID))
+		c.Set(ctxKeyUserID, uint(userID))
+		c.Set(ctxKeySessionID, claims.SessionID)
 
 		c.Next()
 	}

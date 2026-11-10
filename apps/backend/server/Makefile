@@ -1,34 +1,24 @@
-APP_ENV ?= production
+APP_ENV ?= development
 export APP_ENV
-
-BINARY := dist/server
-APP_PACKAGE := ./cmd/server
-COMPOSE_FLAGS = --env-file ".env.${APP_ENV}" -p "qingmo-${APP_ENV}"
-
-.PHONY: all build run dev prod test docker-run docker-down clean
-
-all: build
+APP_PACKAGE := ./cmd
+OUTPUT := ./dist/server
+COMPOSE_FLAGS = --env-file ".env.${APP_ENV}" -p "seqlite-${APP_ENV}"
 
 build:
-	@echo "📦 Building $(BINARY)..."
-	@mkdir -p $(dir $(BINARY))
-	@go build -o $(BINARY) $(APP_PACKAGE)
-
-run: build
-	@echo "🚀 Running in $(APP_ENV) mode..."
-	@APP_ENV=$(APP_ENV) ./$(BINARY)
+	@echo "📦 Building $(OUTPUT)..."
+	@mkdir -p $(dir $(OUTPUT))
+	@go build -o $(OUTPUT) $(APP_PACKAGE)
+	@echo "✅ $(OUTPUT) build successfully"
 
 dev:
 	@echo "🚀 Running in development mode..."
-	@APP_ENV=development go run $(APP_PACKAGE)
+	@APP_ENV=development go run $(OUTPUT)
+	@echo "✅ $(OUTPUT) dev successfully"
 
 prod: build
 	@echo "🚀 Running in production mode..."
-	@APP_ENV=production ./$(BINARY)
-
-test:
-	@echo "🧪 Running tests..."
-	@APP_ENV=test go test -v ./...
+	@APP_ENV=production ./$(OUTPUT)
+	@echo "✅ $(OUTPUT) prod successfully"
 
 docker-run:
 	@if docker compose version >/dev/null 2>&1; then \
@@ -51,6 +41,16 @@ docker-down:
 		echo "error: please ensure Docker Compose is installed"; \
 		exit 1; \
 	fi
+
+
+migrate:
+	@goose -env ".env.$(APP_ENV)" -dir ./migrations up
+
+migrate-status:
+	@goose -env ".env.$(APP_ENV)" -dir ./migrations status
+
+migrate-down:
+	@goose -env ".env.$(APP_ENV)" -dir ./migrations down
 
 clean:
 	@echo "Cleaning..."

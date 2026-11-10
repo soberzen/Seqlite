@@ -1,4 +1,4 @@
-package auth
+package security
 
 import (
 	"crypto/rand"
@@ -13,19 +13,20 @@ import (
 )
 
 const (
-	argon2Memory      uint32 = 64 * 1024
-	argon2Iterations  uint32 = 3
-	argon2Parallelism uint8  = 2
-	argon2SaltLength         = 16
-	argon2KeyLength   uint32 = 32
+	argon2Memory      uint32 = 64 * 1024 // 64MB
+	argon2Iterations  uint32 = 3         // 3次迭代
+	argon2Parallelism uint8  = 2         // 2个线程
+	argon2SaltLength         = 16        // 16字节盐
+	argon2KeyLength   uint32 = 32        // 32字节密钥
 )
 
 var ErrInvalidPasswordHash = errors.New("invalid password hash")
 
-func HashPassword(password string) (string, error) {
+// EncryptPassword 加密密码，返回加密后的密码
+func EncryptPassword(password string) (string, error) {
 	salt := make([]byte, argon2SaltLength)
 	if _, err := rand.Read(salt); err != nil {
-		return "", fmt.Errorf("generate password salt: %w", err)
+		return "", fmt.Errorf("generate random salt failed: %w", err)
 	}
 
 	hash := argon2.IDKey(
@@ -48,8 +49,8 @@ func HashPassword(password string) (string, error) {
 	), nil
 }
 
-func VerifyPassword(password, encodedHash string) (bool, error) {
-	params, salt, expectedHash, err := parsePasswordHash(encodedHash)
+func VerifyPassword(password, encryptedPassword string) (bool, error) {
+	params, salt, expectedHash, err := parsePasswordHash(encryptedPassword)
 	if err != nil {
 		return false, err
 	}
@@ -72,8 +73,11 @@ type argon2Params struct {
 	parallelism uint8
 }
 
-func parsePasswordHash(encodedHash string) (argon2Params, []byte, []byte, error) {
-	parts := strings.Split(encodedHash, "$")
+// parsePasswordHash 解析密码哈希，返回参数、盐、密钥
+func parsePasswordHash(
+	encryptedPassword string,
+) (argon2Params, []byte, []byte, error) {
+	parts := strings.Split(encryptedPassword, "$")
 	if len(parts) != 6 || parts[1] != "argon2id" {
 		return argon2Params{}, nil, nil, ErrInvalidPasswordHash
 	}
@@ -82,33 +86,28 @@ func parsePasswordHash(encodedHash string) (argon2Params, []byte, []byte, error)
 	if err != nil || version != argon2.Version {
 		return argon2Params{}, nil, nil, ErrInvalidPasswordHash
 	}
-
 	params, err := parseArgon2Params(parts[3])
 	if err != nil {
 		return argon2Params{}, nil, nil, err
 	}
-
 	salt, err := base64.RawStdEncoding.DecodeString(parts[4])
 	if err != nil {
 		return argon2Params{}, nil, nil, ErrInvalidPasswordHash
 	}
-
 	hash, err := base64.RawStdEncoding.DecodeString(parts[5])
 	if err != nil {
 		return argon2Params{}, nil, nil, ErrInvalidPasswordHash
 	}
-
 	return params, salt, hash, nil
 }
 
-func parseArgon2Params(raw string) (argon2Params, error) {
+func parseArgon2Params(rawParams string) (argon2Params, error) {
 	values := make(map[string]uint64)
-	for _, part := range strings.Split(raw, ",") {
+	for part := range strings.SplitSeq(rawParams, ",") {
 		keyValue := strings.SplitN(part, "=", 2)
 		if len(keyValue) != 2 {
 			return argon2Params{}, ErrInvalidPasswordHash
 		}
-
 		value, err := strconv.ParseUint(keyValue[1], 10, 32)
 		if err != nil {
 			return argon2Params{}, ErrInvalidPasswordHash
@@ -116,15 +115,15 @@ func parseArgon2Params(raw string) (argon2Params, error) {
 		values[keyValue[0]] = value
 	}
 
-	memory, okMemory := values["m"]
+	mermory, okMemory := values["m"]
 	iterations, okIterations := values["t"]
 	parallelism, okParallelism := values["p"]
+
 	if !okMemory || !okIterations || !okParallelism {
 		return argon2Params{}, ErrInvalidPasswordHash
 	}
-
 	return argon2Params{
-		memory:      uint32(memory),
+		memory:      uint32(mermory),
 		iterations:  uint32(iterations),
 		parallelism: uint8(parallelism),
 	}, nil

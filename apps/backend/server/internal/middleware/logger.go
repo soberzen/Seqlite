@@ -7,10 +7,9 @@ import (
 	"github.com/gin-gonic/gin"
 )
 
-func StructuredLogger(logger *slog.Logger) gin.HandlerFunc {
+func Logger(logger *slog.Logger) gin.HandlerFunc {
 	return func(c *gin.Context) {
 		start := time.Now()
-
 		c.Next()
 
 		status := c.Writer.Status()
@@ -24,6 +23,7 @@ func StructuredLogger(logger *slog.Logger) gin.HandlerFunc {
 		}
 
 		route := c.FullPath()
+
 		if route == "" {
 			route = c.Request.URL.Path
 		}

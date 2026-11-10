@@ -8,124 +8,125 @@ import (
 	"strconv"
 	"time"
 
-	"doc-server/internal/entity"
+	"qingmo-server/internal/config"
 
 	"gorm.io/driver/postgres"
 	"gorm.io/gorm"
 	"gorm.io/gorm/logger"
 )
 
-type Service interface {
+type PostgresService interface {
 	Health() map[string]string
 	Close() error
 	DB() *gorm.DB
 }
 
-type service struct {
+type postgresService struct {
 	db *gorm.DB
 }
 
-var dbInstance *service
+var postgresInstance *postgresService
 
-const RETRY_TIMES = 5
-
-func New() Service {
-	if dbInstance != nil {
-		return dbInstance
+func NewPostgres(cfg config.PostgresConfig) PostgresService {
+	if postgresInstance != nil {
+		return postgresInstance
 	}
 
-	dsn := buildDsn()
-
+	dsn := fmt.Sprintf(
+		"host=%s user=%s password=%s dbname=%s port=%d sslmode=%s search_path=%s",
+		cfg.Host,
+		cfg.User,
+		cfg.Password,
+		cfg.Name,
+		cfg.Port,
+		cfg.SSLMode,
+		cfg.Schema,
+	)
 	db, err := gorm.Open(postgres.Open(dsn), &gorm.Config{
 		Logger:         logger.Default.LogMode(logger.Warn),
 		TranslateError: true,
 	})
 	if err != nil {
-		log.Fatalf("can not connect database: %v", err)
+		log.Fatalf("failed to connect to database: %v", err)
 		return nil
 	}
 
 	sqlDB, err := db.DB()
 	if err != nil {
-		log.Fatalf("can not connect database: %v", err)
+		log.Fatalf("failed to get database handle: %v", err)
 		return nil
 	}
 
-	sqlDB.SetMaxOpenConns(50)
-	sqlDB.SetMaxIdleConns(25)
-	sqlDB.SetConnMaxLifetime(5 * time.Minute)
+	sqlDB.SetMaxOpenConns(50)                 // 设置最大打开连接数
+	sqlDB.SetMaxIdleConns(25)                 // 设置最大空闲连接数
+	sqlDB.SetConnMaxIdleTime(5 * time.Minute) // 设置最大空闲时间
 
-	if err := db.AutoMigrate(&entity.UserEntity{}); err != nil {
-		log.Fatalf("auto migrate database failed: %v", err)
-	}
+	postgresInstance = &postgresService{db: db}
 
-	dbInstance = &service{
-		db: db,
-	}
-	return dbInstance
+	return postgresInstance
 }
 
-func buildDsn() string {
-	mode := os.Getenv("APP_ENV")
-	if mode == "" {
-		mode = "development"
-	}
-	var sslmode string
-
-	if mode == "development" {
-		sslmode = "disable"
-	} else {
-		sslmode = "verify-full"
-	}
-	dsn := fmt.Sprintf("host=%s user=%s password=%s dbname=%s port=%s sslmode=%s search_path=%s",
-		os.Getenv("DB_HOST"), os.Getenv("DB_USER"), os.Getenv("DB_PASSWORD"), os.Getenv("DB_NAME"), os.Getenv("DB_PORT"), sslmode, os.Getenv("DB_SCHEMA"))
-	return dsn
-}
-
-func (s *service) Health() map[string]string {
+func (p *postgresService) Health() map[string]string {
 	ctx, cancel := context.WithTimeout(context.Background(), 1*time.Second)
+
 	defer cancel()
 
 	stats := make(map[string]string)
 
-	// 通过 GORM 提供的底层 sql.DB 进行 Ping 检查
-	sqlDB, err := s.db.DB()
+	sqlDB, err := p.db.DB()
 	if err != nil {
 		stats["status"] = "down"
-		stats["error"] = fmt.Sprintf("failed to get db handle: %v", err)
+		stats["error"] = fmt.Sprintf("failed to get database handle %v", err)
 		return stats
 	}
 
 	err = sqlDB.PingContext(ctx)
 	if err != nil {
 		stats["status"] = "down"
-		stats["error"] = fmt.Sprintf("db down: %v", err)
-		log.Fatalf("db down: %v", err)
+		stats["error"] = fmt.Sprintf("failed to ping database %v", err)
 		return stats
 	}
 
-	// 数据库正常，填充统计信息
 	stats["status"] = "up"
-	stats["message"] = "It's healthy"
+	stats["message"] = "database is healthy"
 
 	dbStats := sqlDB.Stats()
-	stats["open_connections"] = strconv.Itoa(dbStats.OpenConnections)
-	stats["in_use"] = strconv.Itoa(dbStats.InUse)
-	stats["idle"] = strconv.Itoa(dbStats.Idle)
-	stats["wait_count"] = strconv.FormatInt(dbStats.WaitCount, 10)
-	stats["wait_duration"] = dbStats.WaitDuration.String()
-	stats["max_idle_closed"] = strconv.FormatInt(dbStats.MaxIdleClosed, 10)
-	stats["max_lifetime_closed"] = strconv.FormatInt(dbStats.MaxLifetimeClosed, 10)
+	stats["open_connections"] = strconv.Itoa(
+		dbStats.OpenConnections,
+	) // 已打开连接数
+	stats["in_use"] = strconv.Itoa(
+		dbStats.InUse,
+	) // 正在使用的连接数
+	stats["idle"] = strconv.Itoa(
+		dbStats.Idle,
+	) // 空闲连接数
+	stats["wait_count"] = strconv.FormatInt(
+		dbStats.WaitCount,
+		10,
+	) // 等待连接数
+	stats["wait_duration"] = dbStats.WaitDuration.String() // 等待连接时间
+	stats["max_idle_closed"] = strconv.FormatInt(
+		dbStats.MaxIdleClosed,
+		10,
+	) // 最大空闲连接数
+	stats["max_lifetime_closed"] = strconv.FormatInt(
+		dbStats.MaxLifetimeClosed,
+		10,
+	) // 最大生命周期连接数
 
+	// 已打开连接数超过40，说明数据库负载较高，考虑调整最大打开连接数
 	if dbStats.OpenConnections > 40 {
 		stats["message"] = "The database is experiencing heavy load."
 	}
+	// 等待连接数超过1000，说明数据库负载较高，考虑调整最大打开连接数
 	if dbStats.WaitCount > 1000 {
 		stats["message"] = "The database has a high number of wait events, indicating potential bottlenecks."
 	}
+	// 最大空闲连接数超过总连接数的一半，说明空闲连接数过多，考虑调整最大空闲连接数
 	if dbStats.MaxIdleClosed > int64(dbStats.OpenConnections)/2 {
 		stats["message"] = "Many idle connections are being closed, consider revising the connection pool settings."
 	}
+	// 最大生命周期连接数超过总连接数的一半，说明连接生命周期过长，考虑增加最大生命周期或调整连接使用模式
 	if dbStats.MaxLifetimeClosed > int64(dbStats.OpenConnections)/2 {
 		stats["message"] = "Many connections are being closed due to max lifetime, consider increasing max lifetime or revising the connection usage pattern."
 	}
@@ -133,15 +134,15 @@ func (s *service) Health() map[string]string {
 	return stats
 }
 
-func (s *service) Close() error {
-	sqlDB, err := s.db.DB()
+func (p *postgresService) Close() error {
+	sqlDB, err := p.db.DB()
 	if err != nil {
 		return err
 	}
-	log.Printf("Disconnected from database: %s", os.Getenv("DB_NAME"))
+	log.Printf("Disconnected from database: %s", os.Getenv("POSTGRES_NAME"))
 	return sqlDB.Close()
 }
 
-func (s *service) DB() *gorm.DB {
-	return s.db
+func (p *postgresService) DB() *gorm.DB {
+	return p.db
 }

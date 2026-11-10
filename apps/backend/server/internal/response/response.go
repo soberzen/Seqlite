@@ -26,6 +26,27 @@ func Error(c *gin.Context, httpStatus, code int, message string) {
 	c.JSON(httpStatus, Result[any]{
 		Code:      code,
 		Message:   message,
+		Data:      nil,
 		RequestID: c.GetString("request_id"),
 	})
+}
+
+func ErrorWithData(
+	c *gin.Context,
+	httpStatus,
+	code int,
+	message string,
+	data any,
+) {
+	c.AbortWithStatusJSON(httpStatus, Result[any]{
+		Code:      code,
+		Message:   message,
+		Data:      data,
+		RequestID: c.GetString("request_id"),
+	})
+}
+
+func AbortWithError(c *gin.Context, httpStatus, code int, message string) {
+	Error(c, httpStatus, code, message)
+	c.Abort()
 }
