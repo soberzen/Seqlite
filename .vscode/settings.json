@@ -6,5 +6,19 @@
   },
   "files.associations": {
     "*.css": "tailwindcss"
-  }
+  },
+  "[go]": {
+    "editor.defaultFormatter": "golang.go",
+    "editor.formatOnSave": true,
+    "editor.rulers": [80],
+    "editor.codeActionsOnSave": {
+      "source.organizeImports": "explicit"
+    }
+  },
+
+  "go.formatTool": "custom",
+  "go.alternateTools": {
+    "customFormatter": "golines"
+  },
+  "go.formatFlags": ["-m", "80", "--base-formatter", "gofmt"]
 }

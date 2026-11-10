@@ -27,8 +27,10 @@
     "docker:stop": "docker compose -f .devcontainer/docker-compose.yml down",
     "lint": "oxlint",
     "lint:fix": "oxlint --fix",
-    "fmt": "oxfmt",
+    "fmt": "oxfmt && pnpm fmt:go",
+    "fmt:go": "golines -w -m 80 --base-formatter gofmt apps/backend/server",
     "fmt:check": "oxfmt --check",
+    "setup:go-tools": "go install github.com/golangci/golines@v0.16.1",
     "commit": "git-cz",
     "prepare": "husky"
   },
@@ -51,7 +53,7 @@
       "oxfmt"
     ],
     "*.go": [
-      "gofmt -w"
+      "golines -w -m 80 --base-formatter gofmt"
     ]
   },
   "config": {
