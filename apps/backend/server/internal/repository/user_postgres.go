@@ -7,6 +7,7 @@ import (
 	"qingmo-server/internal/model"
 
 	"gorm.io/gorm"
+	"gorm.io/gorm/clause"
 )
 
 type UserPostgresRepository struct {
@@ -107,6 +108,50 @@ func (u *UserPostgresRepository) GetUserByID(
 			"get user failed",
 			err,
 		)
+	}
+	return &user, nil
+}
+
+type ProfileUpdate struct {
+	UserName     *string
+	AvatarURL    *string
+	SetAvatarURL bool
+}
+
+func (u *UserPostgresRepository) UpdateProfile(
+	ctx context.Context,
+	id uint,
+	update ProfileUpdate,
+) (*model.Users, error) {
+	values := make(map[string]any, 2)
+	if update.UserName != nil {
+		values["user_name"] = *update.UserName
+	}
+	if update.SetAvatarURL {
+		values["avatar_url"] = update.AvatarURL
+	}
+
+	var user model.Users
+	result := u.db.WithContext(ctx).
+		Model(&user).
+		Clauses(clause.Returning{Columns: []clause.Column{
+			{Name: "user_name"}, {Name: "email"}, {Name: "avatar_url"},
+		}}).
+		Where("id = ?", id).
+		Updates(values)
+	if err := result.Error; err != nil {
+		if errors.Is(err, context.Canceled) ||
+			errors.Is(err, context.DeadlineExceeded) {
+			return nil, err
+		}
+		return nil, errs.Wrap(
+			errs.KindInternal,
+			"update user profile failed",
+			err,
+		)
+	}
+	if result.RowsAffected == 0 {
+		return nil, errs.New(errs.KindNotFound, "user not found")
 	}
 	return &user, nil
 }
