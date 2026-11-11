@@ -85,3 +85,28 @@ func (u *UserPostgresRepository) GetUserByEmail(
 	}
 	return &user, nil
 }
+
+func (u *UserPostgresRepository) GetUserByID(
+	ctx context.Context,
+	id uint,
+) (*model.Users, error) {
+	var user model.Users
+	if err := u.db.WithContext(ctx).
+		Where("id = ?", id).
+		First(&user).
+		Error; err != nil {
+		if errors.Is(err, context.Canceled) ||
+			errors.Is(err, context.DeadlineExceeded) {
+			return nil, err
+		}
+		if errors.Is(err, gorm.ErrRecordNotFound) {
+			return nil, errs.Wrap(errs.KindNotFound, "user not found", err)
+		}
+		return nil, errs.Wrap(
+			errs.KindInternal,
+			"get user failed",
+			err,
+		)
+	}
+	return &user, nil
+}

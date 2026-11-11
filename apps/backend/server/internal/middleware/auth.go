@@ -82,3 +82,12 @@ func Auth(tokenManager *security.TokenManager) gin.HandlerFunc {
 		c.Next()
 	}
 }
+
+func GetUserID(c *gin.Context) (uint, bool) {
+	val, exists := c.Get(ctxKeyUserID)
+	if !exists {
+		return 0, false
+	}
+	id, ok := val.(uint)
+	return id, ok
+}

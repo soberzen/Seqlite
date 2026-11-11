@@ -12,9 +12,10 @@ import (
 )
 
 func NewRoute(
-	authController *controller.AuthController,
 	logger *slog.Logger,
 	tokenManager *security.TokenManager,
+	authController *controller.AuthController,
+	userController *controller.UserController,
 ) http.Handler {
 	router := gin.New()
 	// Middleware
@@ -34,6 +35,7 @@ func NewRoute(
 
 	registerAuthRoutes(public, authController)
 	registerProtectedRoutes(protected, authController)
+	registerUserRoutes(protected, userController)
 
 	return router
 }

@@ -42,3 +42,11 @@ func wireTokenManager(
 		cfg.RefreshTTL,
 	)
 }
+
+func wireUser(db *gorm.DB) *controller.UserController {
+	users := repository.NewUserPostgresRepository(db)
+	userService := service.NewUserService(users)
+	return controller.NewUserController(
+		userService,
+	)
+}

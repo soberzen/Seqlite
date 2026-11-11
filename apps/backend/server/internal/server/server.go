@@ -24,8 +24,14 @@ func NewServer(cfg *config.Config, logger *slog.Logger) (*http.Server, error) {
 	tokenManager := wireTokenManager(cfg.JWT, redisDB.DB())
 
 	authController := wireAuth(postgresDB.DB(), tokenManager, redisDB.DB())
+	userController := wireUser(postgresDB.DB())
 
-	handler := router.NewRoute(authController, logger, tokenManager)
+	handler := router.NewRoute(
+		logger,
+		tokenManager,
+		authController,
+		userController,
+	)
 
 	server := &http.Server{
 		Addr:         fmt.Sprintf(":%d", cfg.HTTP.Port),
