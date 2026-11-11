@@ -73,10 +73,6 @@ func (u *UserService) UpdateProfile(
 		update.AvatarURL = &avatar
 	}
 
-	if _, err := u.users.GetUserByID(ctx, userID); err != nil {
-		return nil, err
-	}
-
 	user, err := u.users.UpdateProfile(ctx, userID, update)
 	if err != nil {
 		return nil, err
