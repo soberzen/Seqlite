@@ -6,6 +6,7 @@ import (
 
 	"qingmo-server/internal/controller"
 	"qingmo-server/internal/middleware"
+	"qingmo-server/internal/security"
 
 	"github.com/gin-gonic/gin"
 )
@@ -13,6 +14,7 @@ import (
 func NewRoute(
 	authController *controller.AuthController,
 	logger *slog.Logger,
+	tokenManager *security.TokenManager,
 ) http.Handler {
 	router := gin.New()
 	// Middleware
@@ -28,6 +30,7 @@ func NewRoute(
 
 	public := api.Group("")
 	protected := api.Group("")
+	protected.Use(middleware.Auth(tokenManager))
 
 	registerAuthRoutes(public, authController)
 	registerProtectedRoutes(protected, authController)

@@ -23,6 +23,7 @@ func (u *UserPostgresRepository) ExistsByEmail(
 ) (bool, error) {
 	var count int64
 	err := u.db.WithContext(ctx).
+		Model(&model.Users{}).
 		Where("email = ?", email).
 		Count(&count).
 		Error

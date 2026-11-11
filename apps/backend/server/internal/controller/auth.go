@@ -2,6 +2,7 @@ package controller
 
 import (
 	"qingmo-server/internal/dto"
+	"qingmo-server/internal/errs"
 	"qingmo-server/internal/repository"
 	"qingmo-server/internal/response"
 	"qingmo-server/internal/security"
@@ -18,7 +19,7 @@ type AuthController struct {
 
 const (
 	refreshCookieName = "refresh_token"
-	refreshCookiePath = "/api/auth/refresh" // 和路由保持一致
+	refreshCookiePath = "/api/auth" // 和路由保持一致
 )
 
 func NewAuthController(
@@ -76,6 +77,64 @@ func (a *AuthController) Register(c *gin.Context) {
 		AvatarURL: result.AvatarURL,
 	})
 }
-func (a *AuthController) Refresh(c *gin.Context) {}
+func (a *AuthController) Refresh(c *gin.Context) {
+	refreshToken, err := c.Cookie(refreshCookieName)
+	if err != nil {
+		response.WriteError(
+			c,
+			errs.Wrap(errs.KindUnauthorized, "missing refresh token", err),
+		)
+		return
+	}
 
-func (a *AuthController) Logout(c *gin.Context) {}
+	result, err := a.authService.Refresh(
+		c,
+		refreshToken,
+	)
+	if err != nil {
+		response.WriteError(c, err)
+		return
+	}
+
+	c.SetCookie(
+		refreshCookieName,
+		result.RefreshToken,
+		int(a.tokenManager.RefreshTTL.Seconds()),
+		refreshCookiePath,
+		"",
+		false, // 开发环境不开启 HTTPS
+		true,
+	)
+
+	response.Success(c, dto.LoginResponse{
+		AccessToken: result.AccessToken,
+	})
+}
+
+func (a *AuthController) Logout(c *gin.Context) {
+	refreshToken, err := c.Cookie(refreshCookieName)
+	c.SetCookie(
+		refreshCookieName,
+		"",
+		-1,
+		refreshCookiePath,
+		"",
+		false,
+		true,
+	)
+	if err != nil {
+		response.Success[any](
+			c,
+			nil,
+		)
+		return
+	}
+	if err := a.authService.Logout(c, refreshToken); err != nil {
+		response.WriteError(c, err)
+		return
+	}
+	response.Success[any](
+		c,
+		nil,
+	)
+}

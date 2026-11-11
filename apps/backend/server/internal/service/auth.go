@@ -7,6 +7,7 @@ import (
 	"qingmo-server/internal/model"
 	"qingmo-server/internal/repository"
 	"qingmo-server/internal/security"
+	"strconv"
 	"strings"
 )
 
@@ -129,5 +130,109 @@ func (a *AuthService) Register(
 		UserName:  user.UserName,
 		Email:     user.Email,
 		AvatarURL: *user.AvatarURL,
+	}, nil
+}
+
+func (a *AuthService) Logout(ctx context.Context, refreshToken string) error {
+	claims, err := a.tokenManager.VerifyJWT(
+		ctx,
+		refreshToken,
+		security.TokenTypeRefresh,
+	)
+	if err != nil {
+		return err
+	}
+	if err := a.refreshSession.Delete(ctx, claims.SessionID); err != nil {
+		return errs.Wrap(errs.KindInternal, "fail logout", err)
+	}
+	return nil
+}
+
+func (a *AuthService) Refresh(
+	ctx context.Context,
+	refreshToken string,
+) (*LoginResult, error) {
+	claims, err := a.tokenManager.VerifyJWT(
+		ctx,
+		refreshToken,
+		security.TokenTypeRefresh,
+	)
+	if err != nil {
+		return nil, errs.Wrap(
+			errs.KindUnauthorized,
+			"invalid refresh token",
+			err,
+		)
+	}
+	oldSessionID := claims.SessionID
+	expectedOldJTI := claims.ID
+	userID, err := strconv.ParseUint(claims.Subject, 10, 64)
+	if err != nil {
+		return nil, errs.Wrap(
+			errs.KindUnauthorized,
+			"invalid subject in token",
+			err,
+		)
+	}
+	if userID == 0 {
+		return nil, errs.New(errs.KindUnauthorized, "invalid token")
+	}
+
+	newSessionID, err := security.GenerateSessionID()
+	if err != nil {
+		return nil, errs.Wrap(
+			errs.KindInternal,
+			"fail generate session ID",
+			err,
+		)
+	}
+	accessToken, _, err := a.tokenManager.SignJWT(
+		ctx,
+		uint(userID),
+		security.TokenTypeAccess,
+		newSessionID,
+	)
+	if err != nil {
+		return nil, err
+	}
+	refreshToken, newRefreshClaims, err := a.tokenManager.SignJWT(
+		ctx,
+		uint(userID),
+		security.TokenTypeRefresh,
+		newSessionID,
+	)
+	if err != nil {
+		return nil, err
+	}
+
+	newRefreshSession := &repository.RefreshSession{
+		UserID:    uint(userID),
+		JTI:       newRefreshClaims.ID,
+		IssuedAt:  newRefreshClaims.IssuedAt.Time,
+		ExpiresAt: newRefreshClaims.ExpiresAt.Time,
+	}
+
+	if err := a.refreshSession.Rotate(
+		ctx,
+		oldSessionID,
+		expectedOldJTI,
+		newSessionID,
+		newRefreshSession,
+	); err != nil {
+		if errs.IsKind(err, errs.KindNotFound) ||
+			errs.IsKind(err, errs.KindConflict) {
+			return nil, errs.Wrap(
+				errs.KindUnauthorized,
+				"refresh session invalid",
+				err,
+			)
+		}
+		return nil, err
+	}
+
+	return &LoginResult{
+		AccessToken:  accessToken,
+		RefreshToken: refreshToken,
+		SessionID:    newSessionID,
 	}, nil
 }

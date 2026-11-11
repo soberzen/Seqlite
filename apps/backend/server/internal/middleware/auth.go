@@ -68,6 +68,13 @@ func Auth(tokenManager *security.TokenManager) gin.HandlerFunc {
 			))
 			return
 		}
+		if userID == 0 {
+			response.WriteError(
+				c,
+				errs.New(errs.KindUnauthorized, "invalid token"),
+			)
+			return
+		}
 
 		c.Set(ctxKeyUserID, uint(userID))
 		c.Set(ctxKeySessionID, claims.SessionID)
