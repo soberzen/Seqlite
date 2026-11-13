@@ -1,6 +1,10 @@
 package model
 
-import "time"
+import (
+	"time"
+
+	"github.com/google/uuid"
+)
 
 type SpaceStatus int8
 
@@ -16,6 +20,7 @@ type Spaces struct {
 	Description string      `gorm:"type:text;not null;default:''"`
 	Status      SpaceStatus `gorm:"type:smallint;not null;default:0"`
 	OwnerID     uint        `gorm:"type:bigint;not null;index:idx_spaces_owner_id"`
+	PublicID    uuid.UUID   `gorm:"type:uuid;not null;default:gen_random_uuid()"`
 	// ExpireAt 仅当 Status=Trashed 时非 nil，表示回收站过期时间。
 	ExpireAt  *time.Time `gorm:"type:timestamptz"`
 	CreatedAt time.Time  `gorm:"type:timestamptz;not null;autoCreateTime"`
