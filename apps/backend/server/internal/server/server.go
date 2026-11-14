@@ -8,6 +8,7 @@ import (
 
 	"qingmo-server/internal/config"
 	"qingmo-server/internal/database"
+	"qingmo-server/internal/realtime"
 	"qingmo-server/internal/router"
 )
 
@@ -25,12 +26,18 @@ func NewServer(cfg *config.Config, logger *slog.Logger) (*http.Server, error) {
 
 	authController := wireAuth(postgresDB.DB(), tokenManager, redisDB.DB())
 	userController := wireUser(postgresDB.DB())
+	collabationController := wireCollaboration(
+		postgresDB.DB(),
+		redisDB.DB(),
+		realtime.NewCollabHandler([]string{"*"}),
+	)
 
 	handler := router.NewRoute(
 		logger,
 		tokenManager,
 		authController,
 		userController,
+		collabationController,
 	)
 
 	server := &http.Server{

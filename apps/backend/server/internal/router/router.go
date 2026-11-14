@@ -16,6 +16,7 @@ func NewRoute(
 	tokenManager *security.TokenManager,
 	authController *controller.AuthController,
 	userController *controller.UserController,
+	collabationController *controller.CollaborationController,
 ) http.Handler {
 	router := gin.New()
 	// Middleware
@@ -36,6 +37,9 @@ func NewRoute(
 	registerAuthRoutes(public, authController)
 	registerProtectedRoutes(protected, authController)
 	registerUserRoutes(protected, userController)
+
+	// websocket
+	registerCollaborationRoutes(public, protected, collabationController)
 
 	return router
 }
