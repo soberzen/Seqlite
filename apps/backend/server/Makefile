@@ -12,7 +12,7 @@ build:
 
 dev:
 	@echo "🚀 Running in development mode..."
-	@APP_ENV=development go run $(OUTPUT)
+	@APP_ENV=development go run $(APP_PACKAGE)
 	@echo "✅ $(OUTPUT) dev successfully"
 
 prod: build
