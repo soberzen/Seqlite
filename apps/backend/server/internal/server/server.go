@@ -9,9 +9,14 @@ import (
 	"qingmo-server/internal/config"
 	"qingmo-server/internal/database"
 	"qingmo-server/internal/router"
+	"qingmo-server/internal/validation"
 )
 
 func NewServer(cfg *config.Config, logger *slog.Logger) (*http.Server, error) {
+	if err := validation.RegisterValidation(); err != nil {
+		return nil, fmt.Errorf("register request validation: %w", err)
+	}
+
 	postgresDB := database.NewPostgres(cfg.Postgres)
 	redisDB := database.NewRedis(cfg.Redis)
 

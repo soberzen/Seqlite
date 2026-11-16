@@ -82,6 +82,10 @@ func fieldErrorMessage(fe validator.FieldError) string {
 		return "is required"
 	case "email":
 		return "must be a valid email address"
+	case "emoji":
+		return "must be at most 32 characters without NUL"
+	case "displayname":
+		return "name contains invalid or invisible characters"
 	case "min":
 		return fmt.Sprintf("must be at least %s characters", fe.Param())
 	case "max":
