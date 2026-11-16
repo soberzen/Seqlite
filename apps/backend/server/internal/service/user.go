@@ -2,13 +2,10 @@ package service
 
 import (
 	"context"
-	"net/url"
 	"qingmo-server/internal/dto"
-	"qingmo-server/internal/errs"
 	"qingmo-server/internal/model"
 	"qingmo-server/internal/repository"
 	"strings"
-	"unicode/utf8"
 )
 
 type UserService struct {
@@ -38,42 +35,17 @@ func (u *UserService) UpdateProfile(
 	userID uint,
 	req dto.UpdateProfileRequest,
 ) (*dto.ProfileResponse, error) {
-	if !req.UserName.Present && !req.AvatarURL.Present {
-		return nil, errs.New(errs.KindInvalid, "provide userName or avatarURL")
+
+	if req.UserName != nil {
+		name := strings.TrimSpace(*req.UserName)
+		req.UserName = &name
+	}
+	if req.AvatarURL != nil {
+		url := strings.TrimSpace(*req.AvatarURL)
+		req.AvatarURL = &url
 	}
 
-	update := repository.ProfileUpdate{SetAvatarURL: req.AvatarURL.Present}
-	if req.UserName.Present {
-		if req.UserName.Value == nil {
-			return nil, errs.New(errs.KindInvalid, "userName cannot be null")
-		}
-		name := strings.TrimSpace(*req.UserName.Value)
-		if name == "" || utf8.RuneCountInString(name) > 32 ||
-			strings.ContainsRune(name, 0) {
-			return nil, errs.New(
-				errs.KindInvalid,
-				"userName must be 1–32 characters without NUL",
-			)
-		}
-		update.UserName = &name
-	}
-	if req.AvatarURL.Present && req.AvatarURL.Value != nil {
-		avatar := strings.TrimSpace(*req.AvatarURL.Value)
-		parsed, err := url.Parse(avatar)
-		if err != nil ||
-			(parsed.Scheme != "http" && parsed.Scheme != "https") ||
-			parsed.Hostname() == "" ||
-			strings.ContainsRune(avatar, 0) ||
-			utf8.RuneCountInString(avatar) > 255 {
-			return nil, errs.New(
-				errs.KindInvalid,
-				"avatarURL must be an HTTP(S) URL of at most 255 characters",
-			)
-		}
-		update.AvatarURL = &avatar
-	}
-
-	user, err := u.users.UpdateProfile(ctx, userID, update)
+	user, err := u.users.UpdateProfile(ctx, userID, req)
 	if err != nil {
 		return nil, err
 	}

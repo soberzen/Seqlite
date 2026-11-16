@@ -1,32 +1,14 @@
 package dto
 
-import "encoding/json"
-
 type ProfileResponse struct {
 	UserName  string  `json:"userName"`
 	Email     string  `json:"email"`
 	AvatarURL *string `json:"avatarURL"`
 }
 
-// PatchString records whether a string field was omitted or explicitly set to null.
-type PatchString struct {
-	Present bool
-	Value   *string
-}
-
-func (s *PatchString) UnmarshalJSON(data []byte) error {
-	var value *string
-	if err := json.Unmarshal(data, &value); err != nil {
-		return err
-	}
-	s.Present = true
-	s.Value = value
-	return nil
-}
-
 type UpdateProfileRequest struct {
-	UserName  PatchString `json:"userName"`
-	AvatarURL PatchString `json:"avatarURL"`
+	UserName  *string `json:"userName"  binding:"omitempty,min=6,max=32,displayname"`
+	AvatarURL *string `json:"avatarURL" binding:"omitempty,url"`
 }
 
 type PublicProfileResponse struct {

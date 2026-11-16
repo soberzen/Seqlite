@@ -3,6 +3,7 @@ package repository
 import (
 	"context"
 	"errors"
+	"qingmo-server/internal/dto"
 	"qingmo-server/internal/errs"
 	"qingmo-server/internal/model"
 
@@ -112,23 +113,17 @@ func (u *UserPostgresRepository) GetUserByID(
 	return &user, nil
 }
 
-type ProfileUpdate struct {
-	UserName     *string
-	AvatarURL    *string
-	SetAvatarURL bool
-}
-
 func (u *UserPostgresRepository) UpdateProfile(
 	ctx context.Context,
 	id uint,
-	update ProfileUpdate,
+	update dto.UpdateProfileRequest,
 ) (*model.Users, error) {
 	values := make(map[string]any, 2)
 	if update.UserName != nil {
 		values["user_name"] = *update.UserName
 	}
-	if update.SetAvatarURL {
-		values["avatar_url"] = update.AvatarURL
+	if update.AvatarURL != nil {
+		values["avatar_url"] = *update.AvatarURL
 	}
 
 	var user model.Users
