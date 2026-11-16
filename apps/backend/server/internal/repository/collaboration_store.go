@@ -50,7 +50,10 @@ func (s *DocumentStore) withLockedDocument(
 	}, &sql.TxOptions{Isolation: sql.LevelReadCommitted})
 }
 
-func readDocumentUpdates(tx *gorm.DB, docID uint) ([][]byte, uint, error) {
+func readDocumentUpdates(
+	tx *gorm.DB,
+	docID uint,
+) ([][]byte, uint, uint, error) {
 	var checkpoint model.DocumentCheckpoint
 
 	err := tx.Where("document_id = ?", docID).
@@ -58,7 +61,7 @@ func readDocumentUpdates(tx *gorm.DB, docID uint) ([][]byte, uint, error) {
 		Take(&checkpoint).
 		Error
 	if err != nil && !errors.Is(err, gorm.ErrRecordNotFound) {
-		return nil, 0, errs.Wrap(
+		return nil, 0, 0, errs.Wrap(
 			errs.KindInternal,
 			"failed to query document checkpoint",
 			err,
@@ -75,7 +78,7 @@ func readDocumentUpdates(tx *gorm.DB, docID uint) ([][]byte, uint, error) {
 		Order("revision ASC").
 		Find(&revisions).Error
 	if err != nil {
-		return nil, 0, errs.Wrap(
+		return nil, 0, 0, errs.Wrap(
 			errs.KindInternal,
 			"failed to query document revisions",
 			err,
@@ -85,7 +88,7 @@ func readDocumentUpdates(tx *gorm.DB, docID uint) ([][]byte, uint, error) {
 		updates = append(updates, rev.YjsUpdate)
 		last = rev.Revision
 	}
-	return updates, last, nil
+	return updates, last, uint(len(revisions)), nil
 }
 
 func (s *DocumentStore) StoreUpdate(
@@ -147,7 +150,7 @@ func (s *DocumentStore) GetUpdates(
 	var updates [][]byte
 	err = s.db.WithContext(ctx).Transaction(func(tx *gorm.DB) error {
 		var readErr error
-		updates, _, readErr = readDocumentUpdates(tx, id)
+		updates, _, _, readErr = readDocumentUpdates(tx, id)
 		return readErr
 	}, &sql.TxOptions{
 		Isolation: sql.LevelRepeatableRead,
@@ -161,12 +164,21 @@ func (s *DocumentStore) Flush(ctx context.Context, docName string) error {
 		ctx,
 		docName,
 		func(tx *gorm.DB, doc *model.Documents) error {
-			updates, last, err := readDocumentUpdates(tx, doc.ID)
-			if err != nil || len(updates) <= 2 {
+			updates, last, newRevisionCount, err := readDocumentUpdates(
+				tx,
+				doc.ID,
+			)
+			if err != nil {
 				return errs.Wrap(
 					errs.KindInternal,
 					"no updates to flush",
 					err,
+				)
+			}
+			if newRevisionCount <= 2 {
+				return errs.New(
+					errs.KindInternal,
+					"new revisions <= 3 can not flush",
 				)
 			}
 			state, err := persist.MergeUpdates(updates)
