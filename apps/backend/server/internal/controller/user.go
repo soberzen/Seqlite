@@ -3,7 +3,6 @@ package controller
 import (
 	"qingmo-server/internal/dto"
 	"qingmo-server/internal/errs"
-	"qingmo-server/internal/middleware"
 	"qingmo-server/internal/response"
 	"qingmo-server/internal/service"
 	"strconv"
@@ -23,12 +22,7 @@ func NewUserController(
 	}
 }
 
-func (u *UserController) Profile(c *gin.Context) {
-	userID, ok := middleware.GetUserID(c)
-	if !ok {
-		response.WriteError(c, errs.New(errs.KindUnauthorized, "invalid token"))
-		return
-	}
+func (u *UserController) Profile(c *gin.Context, userID uint) {
 	result, err := u.userService.Profile(c, userID)
 	if err != nil {
 		response.WriteError(c, err)
@@ -37,13 +31,7 @@ func (u *UserController) Profile(c *gin.Context) {
 	response.Success(c, result)
 }
 
-func (u *UserController) UpdateProfile(c *gin.Context) {
-	userID, ok := middleware.GetUserID(c)
-	if !ok {
-		response.WriteError(c, errs.New(errs.KindUnauthorized, "invalid token"))
-		return
-	}
-
+func (u *UserController) UpdateProfile(c *gin.Context, userID uint) {
 	var req dto.UpdateProfileRequest
 	if err := c.ShouldBindJSON(&req); err != nil {
 		response.BindError(c, err)

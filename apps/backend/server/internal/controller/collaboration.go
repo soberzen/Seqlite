@@ -3,7 +3,6 @@ package controller
 import (
 	"net/http"
 	"qingmo-server/internal/errs"
-	"qingmo-server/internal/middleware"
 	"qingmo-server/internal/realtime"
 	"qingmo-server/internal/response"
 	"qingmo-server/internal/service"
@@ -36,12 +35,7 @@ func collaborationDocumentID(c *gin.Context) (uuid.UUID, error) {
 	return id, nil
 }
 
-func (h *CollaborationController) IssueTicket(c *gin.Context) {
-	userID, ok := middleware.GetUserID(c)
-	if !ok || int64(userID) <= 0 {
-		response.WriteError(c, errs.New(errs.KindUnauthorized, "invalid token"))
-		return
-	}
+func (h *CollaborationController) IssueTicket(c *gin.Context, userID uint) {
 	publicID, err := collaborationDocumentID(c)
 	if err != nil {
 		response.WriteError(c, err)

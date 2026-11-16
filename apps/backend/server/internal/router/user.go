@@ -11,7 +11,7 @@ func registerUserRoutes(
 	userController *controller.UserController,
 ) {
 	routes := group.Group("/user")
-	routes.GET("/me", userController.Profile)
-	routes.PATCH("/me", userController.UpdateProfile)
+	routes.GET("/me", withAuthenticatedUser(userController.Profile))
+	routes.PATCH("/me", withAuthenticatedUser(userController.UpdateProfile))
 	group.GET("/users/:id", userController.PublicProfile)
 }

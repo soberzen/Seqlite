@@ -59,7 +59,12 @@ func Auth(tokenManager *security.TokenManager) gin.HandlerFunc {
 			return
 		}
 
-		userID, err := strconv.ParseUint(claims.Subject, 10, 64)
+		// PostgreSQL stores user IDs as signed BIGINT values.
+		userID, err := strconv.ParseUint(
+			claims.Subject,
+			10,
+			min(strconv.IntSize, 63),
+		)
 		if err != nil {
 			response.WriteError(c, errs.Wrap(
 				errs.KindUnauthorized,

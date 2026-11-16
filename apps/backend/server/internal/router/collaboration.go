@@ -13,6 +13,6 @@ func registerCollaborationRoutes(
 ) {
 	const path = "/ws/document/:id"
 
-	protect.POST(path+"/ticket", collab.IssueTicket)
+	protect.POST(path+"/ticket", withAuthenticatedUser(collab.IssueTicket))
 	api.GET(path, collab.Connect)
 }

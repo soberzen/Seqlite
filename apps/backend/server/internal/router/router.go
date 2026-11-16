@@ -5,7 +5,9 @@ import (
 	"net/http"
 
 	"qingmo-server/internal/controller"
+	"qingmo-server/internal/errs"
 	"qingmo-server/internal/middleware"
+	"qingmo-server/internal/response"
 	"qingmo-server/internal/security"
 
 	"github.com/gin-gonic/gin"
@@ -42,4 +44,18 @@ func NewRoute(
 	registerCollaborationRoutes(public, protected, collabationController)
 
 	return router
+}
+
+func withAuthenticatedUser(handler func(*gin.Context, uint)) gin.HandlerFunc {
+	return func(c *gin.Context) {
+		userID, ok := middleware.GetUserID(c)
+		if !ok {
+			response.WriteError(
+				c,
+				errs.New(errs.KindUnauthorized, "invalid token"),
+			)
+			return
+		}
+		handler(c, userID)
+	}
 }
