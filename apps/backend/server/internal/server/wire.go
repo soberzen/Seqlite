@@ -1,9 +1,9 @@
 package server
 
 import (
-	"net/http"
 	"qingmo-server/internal/config"
 	"qingmo-server/internal/controller"
+	"qingmo-server/internal/realtime"
 	"qingmo-server/internal/repository"
 	"qingmo-server/internal/security"
 	"qingmo-server/internal/service"
@@ -55,11 +55,13 @@ func wireUser(db *gorm.DB) *controller.UserController {
 func wireCollaboration(
 	db *gorm.DB,
 	redis *redis.Client,
-	wsHandler http.Handler,
+	origins []string,
 ) *controller.CollaborationController {
 	documents := repository.NewDocumentAccessPostgresRepository(db)
 	tickets := repository.NewCollaborationTicketRedisRepository(redis)
 	collabService := service.NewCollaborationService(documents, tickets)
+	docStore := repository.NewDocumentStore(db)
+	wsHandler := realtime.NewCollabHandler(docStore, origins)
 	return controller.NewCollaborationController(
 		collabService,
 		wsHandler,

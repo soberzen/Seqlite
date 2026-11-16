@@ -79,6 +79,7 @@ func (h *CollaborationController) Connect(c *gin.Context) {
 	req := realtime.WithDocumentAccess(
 		c.Request,
 		access.DocumentID,
+		uint(access.ActorID),
 		access.CanEdit,
 	)
 	h.wsHandler.ServeHTTP(c.Writer, req)

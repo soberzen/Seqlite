@@ -5,27 +5,36 @@ import (
 	"net/http"
 	"strconv"
 
+	"github.com/Deln0r/ygo/persist"
 	"github.com/Deln0r/ygo/server"
 )
 
 type documentEditKey struct{}
+type actorIDKey struct{}
 
 func WithDocumentAccess(
 	r *http.Request,
 	documentID int64,
+	actorID uint,
 	canEdit bool,
 ) *http.Request {
 	ctx := context.WithValue(r.Context(), documentEditKey{}, canEdit)
+	ctx = context.WithValue(ctx, actorIDKey{}, actorID)
 	req := r.WithContext(ctx)
 	req.SetPathValue("documentID", strconv.FormatInt(documentID, 10))
 	return req
 }
 
-func NewCollabHandler(origins []string) http.Handler {
+func GetActorID(ctx context.Context) (uint, bool) {
+	id, ok := ctx.Value(actorIDKey{}).(uint)
+	return id, ok
+}
+
+func NewCollabHandler(store persist.Store, origins []string) http.Handler {
 	s := server.New(server.Options{
-		// Store:          store,
+		Store:          store,
 		OriginPatterns: origins,
-		FlushEvery:     100,
+		FlushEvery:     200,
 		DocNameFn: func(r *http.Request) string {
 			return r.PathValue("documentID")
 		},

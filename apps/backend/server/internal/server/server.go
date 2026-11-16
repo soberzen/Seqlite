@@ -8,7 +8,6 @@ import (
 
 	"qingmo-server/internal/config"
 	"qingmo-server/internal/database"
-	"qingmo-server/internal/realtime"
 	"qingmo-server/internal/router"
 )
 
@@ -29,7 +28,7 @@ func NewServer(cfg *config.Config, logger *slog.Logger) (*http.Server, error) {
 	collabationController := wireCollaboration(
 		postgresDB.DB(),
 		redisDB.DB(),
-		realtime.NewCollabHandler([]string{"*"}),
+		[]string{"*"},
 	)
 
 	handler := router.NewRoute(
