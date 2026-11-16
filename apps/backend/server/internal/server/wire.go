@@ -52,6 +52,12 @@ func wireUser(db *gorm.DB) *controller.UserController {
 	)
 }
 
+func wireSpace(db *gorm.DB) *controller.SpaceController {
+	spaces := repository.NewSpacePostgresRepository(db)
+	spaceService := service.NewSpaceService(spaces)
+	return controller.NewSpaceController(spaceService)
+}
+
 func wireCollaboration(
 	db *gorm.DB,
 	redis *redis.Client,

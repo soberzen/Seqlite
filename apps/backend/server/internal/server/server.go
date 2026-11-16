@@ -30,6 +30,7 @@ func NewServer(cfg *config.Config, logger *slog.Logger) (*http.Server, error) {
 
 	authController := wireAuth(postgresDB.DB(), tokenManager, redisDB.DB())
 	userController := wireUser(postgresDB.DB())
+	spaceController := wireSpace(postgresDB.DB())
 	collabationController := wireCollaboration(
 		postgresDB.DB(),
 		redisDB.DB(),
@@ -41,6 +42,7 @@ func NewServer(cfg *config.Config, logger *slog.Logger) (*http.Server, error) {
 		tokenManager,
 		authController,
 		userController,
+		spaceController,
 		collabationController,
 	)
 
