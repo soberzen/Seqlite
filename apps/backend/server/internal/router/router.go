@@ -28,7 +28,7 @@ func NewRoute(
 	)
 
 	// API routes
-	api := router.Group("/api")
+	api := router.Group("/v1/api")
 
 	public := api.Group("")
 	protected := api.Group("")
