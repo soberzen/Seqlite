@@ -10,14 +10,14 @@ type LoginResponse struct {
 }
 
 type RegisterRequest struct {
-	UserName  string `json:"userName"  binding:"required"`
-	Email     string `json:"email"     binding:"required,email"`
-	Password  string `json:"password"  binding:"required"`
-	AvatarURL string `json:"avatarURL"`
+	UserName  string  `json:"userName"  binding:"required"`
+	Email     string  `json:"email"     binding:"required,email"`
+	Password  string  `json:"password"  binding:"required"`
+	AvatarURL *string `json:"avatarURL"`
 }
 
 type RegisterResponse struct {
-	UserName  string `json:"userName"`
-	Email     string `json:"email"`
-	AvatarURL string `json:"avatarURL"`
+	UserName  string  `json:"userName"`
+	Email     string  `json:"email"`
+	AvatarURL *string `json:"avatarURL"`
 }

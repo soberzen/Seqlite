@@ -121,7 +121,7 @@ func (a *AuthService) Register(
 		UserName:  req.UserName,
 		Email:     strings.ToLower(req.Email),
 		Password:  encryptedPassword,
-		AvatarURL: &req.AvatarURL,
+		AvatarURL: req.AvatarURL,
 	})
 	if err != nil {
 		return nil, err
@@ -129,7 +129,7 @@ func (a *AuthService) Register(
 	return &dto.RegisterResponse{
 		UserName:  user.UserName,
 		Email:     user.Email,
-		AvatarURL: *user.AvatarURL,
+		AvatarURL: user.AvatarURL,
 	}, nil
 }
 
