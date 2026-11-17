@@ -10,6 +10,7 @@ import { showToast } from '@qingmo/shadcn/lib/toast';
 import { useState } from 'react';
 
 import { CommentDemo } from './components/comment-demo';
+import { EmojiPickerDemo } from './components/emoji-picker-demo';
 import { ImageBlockDemo } from './components/image-block-demo';
 import { ImageBlockNodeViewDemo } from './components/image-block-node-view-demo';
 import { MathBlockDemo } from './components/math-block-demo';
@@ -47,6 +48,19 @@ function App() {
               编辑器界面与共享 UI 的独立调试环境。
             </p>
           </header>
+
+          <section
+            aria-labelledby='emoji-picker-heading'
+            className='rounded-xl border bg-card p-6 text-card-foreground'
+          >
+            <h2
+              id='emoji-picker-heading'
+              className='text-lg font-semibold'
+            >
+              Emoji 选择器
+            </h2>
+            <EmojiPickerDemo />
+          </section>
 
           <section
             aria-labelledby='comment-heading'
