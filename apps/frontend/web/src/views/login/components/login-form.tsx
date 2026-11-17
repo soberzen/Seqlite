@@ -12,10 +12,11 @@ import { PasswordToggleButton } from '@qingmo/shadcn/components/password-toggle-
 import { showToast } from '@qingmo/shadcn/lib/toast';
 import { useCallback, memo, useState } from 'react';
 import { Controller, useForm, type Control } from 'react-hook-form';
-import { Link, useSearchParams, useNavigate } from 'react-router';
+import { Link } from 'react-router';
 import { z } from 'zod';
 
 import { login } from '@/service/api/auth';
+import { useAuthStore } from '@/stores/auth/use-auth';
 import { useAuthVisualStore } from '@/stores/auth/use-auth-visual';
 import { setToken } from '@/utils/auth';
 
@@ -172,7 +173,7 @@ const FormFooter = memo(({ control }: FormFooterProps) => {
               </>
             )}
           />
-          <FieldLabel htmlFor='remember'>记住密码</FieldLabel>
+          <FieldLabel htmlFor='remember'>7天内自动登录</FieldLabel>
         </Field>
       </div>
       <Link
@@ -253,14 +254,6 @@ const SignupLink = memo(() => {
 
 export default function LoginForm() {
   const [isLoading, setIsLoading] = useState(false);
-  const [searchParams] = useSearchParams();
-  const navigate = useNavigate();
-  const rawRedirect = searchParams.get('redirect') || '/';
-
-  const redirect =
-    rawRedirect && rawRedirect.startsWith('/') && !rawRedirect.startsWith('//')
-      ? rawRedirect
-      : '/';
 
   const { control, handleSubmit } = useForm<LoginFormValues>({
     resolver: zodResolver(loginSchema), // 绑定 Zod 校验
@@ -275,10 +268,10 @@ export default function LoginForm() {
     setIsLoading(true);
 
     login(values)
-      .then((res) => {
+      .then(async (res) => {
         const { accessToken } = res.data;
         setToken(accessToken);
-        navigate(redirect, { replace: true });
+        await useAuthStore.getState().refreshUser();
       })
       .catch(() => {
         showToast.error('登录失败', {

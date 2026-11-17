@@ -1,35 +1,28 @@
 import { lazy } from 'react';
-import { createBrowserRouter } from 'react-router';
+import { type RouteObject } from 'react-router';
 
-import RootRoute, { GuestRoute } from '@/layouts/route/route-layout';
+import { RedirectRoute, ProtectRoute } from '@/layouts/route/route-layout';
 
 const Login = lazy(() => import('@/views/login/page'));
 const Signup = lazy(() => import('@/views/signup/page'));
-const NotFound = lazy(() => import('@/views/not-found.tsx/not-found'));
+const NotFound = lazy(() => import('@/views/not-found/not-found'));
 
-export const router = createBrowserRouter([
+export const routes: RouteObject[] = [
+  {
+    path: '/login',
+    element: (
+      <RedirectRoute>
+        <Login />
+      </RedirectRoute>
+    ),
+  },
+  {
+    path: '/signup',
+    element: <Signup />,
+  },
   {
     path: '/',
-    element: <RootRoute />,
-    children: [
-      // 登录注册路由
-      {
-        element: <GuestRoute />,
-        children: [
-          {
-            path: 'login',
-            element: <Login />,
-          },
-          {
-            path: 'signup',
-            element: <Signup />,
-          },
-        ],
-      },
-    ],
+    element: <ProtectRoute />,
   },
-  {
-    path: '*',
-    element: <NotFound />,
-  },
-]);
+  { path: '*', element: <NotFound /> },
+];

@@ -249,7 +249,7 @@ export default function SignupForm() {
 
     register({
       email: values.email,
-      name: values.name,
+      userName: values.name,
       password: values.password,
     })
       .then(() => {

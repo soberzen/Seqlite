@@ -1,5 +1,5 @@
 import { LumaSpin } from '@qingmo/shadcn/components/luma-spin';
-import { Suspense } from 'react';
+import { type ReactElement } from 'react';
 import { Navigate, Outlet, useLocation } from 'react-router';
 
 import { useAuthStore } from '@/stores/auth/use-auth';
@@ -11,14 +11,6 @@ const PageLoading = () => {
     </div>
   );
 };
-
-export default function RootRoute() {
-  return (
-    <Suspense fallback={<PageLoading />}>
-      <Outlet />
-    </Suspense>
-  );
-}
 
 export function ProtectRoute() {
   const loading = useAuthStore((state) => state.loading);
@@ -42,7 +34,7 @@ export function ProtectRoute() {
   return <Outlet />;
 }
 
-export function GuestRoute() {
+export function RedirectRoute({ children }: { children: ReactElement }) {
   const loading = useAuthStore((state) => state.loading);
   const isAuthenticated = useAuthStore((state) => state.isAuthenticated);
 
@@ -60,5 +52,5 @@ export function GuestRoute() {
       />
     );
   }
-  return <Outlet />;
+  return children;
 }
