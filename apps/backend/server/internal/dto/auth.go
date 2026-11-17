@@ -10,10 +10,10 @@ type LoginResponse struct {
 }
 
 type RegisterRequest struct {
-	UserName  string `json:"user_name"  binding:"required"`
-	Email     string `json:"email"      binding:"required,email"`
-	Password  string `json:"password"   binding:"required"`
-	AvatarURL string `json:"avatar_url"`
+	UserName  string `json:"userName"  binding:"required"`
+	Email     string `json:"email"     binding:"required,email"`
+	Password  string `json:"password"  binding:"required"`
+	AvatarURL string `json:"avatarURL"`
 }
 
 type RegisterResponse struct {
