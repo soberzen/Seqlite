@@ -1,13 +1,23 @@
 import { LumaSpin } from '@qingmo/shadcn/components/luma-spin';
-import { type ReactElement } from 'react';
+import { cn } from '@qingmo/shadcn/lib/utils';
+import { type PropsWithChildren, type ReactElement } from 'react';
 import { Navigate, Outlet, useLocation } from 'react-router';
 
 import { useAuthStore } from '@/stores/auth/use-auth';
 
-const PageLoading = () => {
+export const PageLoading = ({
+  children,
+  className,
+}: PropsWithChildren<{ className?: string }>) => {
   return (
-    <div className='flex min-h-screen w-full items-center justify-center bg-background'>
+    <div
+      className={cn(
+        'flex h-full w-full items-center justify-center bg-background flex-col gap-2',
+        className,
+      )}
+    >
       <LumaSpin />
+      {children}
     </div>
   );
 };

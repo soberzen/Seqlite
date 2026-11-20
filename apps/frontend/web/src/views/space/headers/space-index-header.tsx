@@ -1,13 +1,17 @@
-import { HouseIcon } from 'lucide-react';
+import { FolderClosedIcon } from 'lucide-react';
 
 export function SpaceIndexHeader() {
   return (
-    <div className='flex items-center gap-1.75'>
-      <HouseIcon
-        size={18}
-        className='text-muted-foreground'
+    <nav
+      aria-label='面包屑'
+      className='flex items-center gap-2.5 text-sm'
+    >
+      <FolderClosedIcon
+        size={16}
+        className='text-subtle'
+        aria-hidden
       />
-      <span className='text-foreground text-sm'>开始使用</span>
-    </div>
+      <span className='text-foreground'>空间</span>
+    </nav>
   );
 }

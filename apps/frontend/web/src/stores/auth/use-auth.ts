@@ -17,7 +17,7 @@ type AuthState = {
 export const useAuthStore = create<AuthState>((set) => ({
   loading: false,
   isAuthenticated: false,
-  user: null,
+  user: { userName: 'sober', email: 'gongyi@gmail.com', avatarURL: null },
   setUser: (user: User) => set({ user, isAuthenticated: true }),
   refreshUser: async () => {
     set({ loading: true });

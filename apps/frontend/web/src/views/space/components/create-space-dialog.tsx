@@ -15,34 +15,22 @@ import {
   type RefObject,
 } from 'react';
 import { useController, useForm, type Control } from 'react-hook-form';
-import { z } from 'zod';
 
 import { Model } from '@/components/ui/model';
-import type { Space } from '@/service/api/space';
-
-const spaceNameLimit = 80;
-const spaceDescriptionLimit = 200;
-
-const createSpaceSchema = z.object({
-  name: z
-    .string()
-    .trim()
-    .min(1, '请输入空间名称')
-    .max(spaceNameLimit, `空间名称不能超过 ${spaceNameLimit} 个字符`),
-  description: z
-    .string()
-    .max(spaceDescriptionLimit, `描述不能超过 ${spaceDescriptionLimit} 个字符`),
-  emoji: z.emoji().nullable(),
-});
-
-type SpaceValues = z.infer<typeof createSpaceSchema>;
+import {
+  CreateSpaceSchema,
+  spaceDescriptionLimit,
+  spaceNameLimit,
+  type CreateSpaceDto,
+  type Space,
+} from '@/service/api/space';
 
 export type SpaceDialogRequest =
   | {
       mode: 'create';
-      initialValues?: Partial<SpaceValues>;
+      initialValues?: Partial<CreateSpaceDto>;
     }
-  | { mode: 'update'; spaceId: Space['id']; initialValues: SpaceValues };
+  | { mode: 'update'; spaceId: Space['id']; initialValues: CreateSpaceDto };
 
 type CreateSpaceDialogProps = {
   open: boolean;
@@ -50,7 +38,7 @@ type CreateSpaceDialogProps = {
   onOpenChange: (open: boolean) => void;
 };
 type FieldProps = {
-  control: Control<SpaceValues>;
+  control: Control<CreateSpaceDto>;
 };
 
 function SpaceNameField({
@@ -207,7 +195,7 @@ export function CreateSpaceDialog({
   const formId = useId();
   const nameInputRef = useRef<HTMLInputElement>(null);
   const { control, handleSubmit, reset } = useForm({
-    resolver: zodResolver(createSpaceSchema),
+    resolver: zodResolver(CreateSpaceSchema),
     defaultValues: { name: '', emoji: null, description: '' },
   });
 

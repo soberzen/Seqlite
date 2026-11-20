@@ -20,6 +20,7 @@ export type HTTPResponse<T> = {
   code: string;
   message: string;
   data: T;
+  request_id: string;
 };
 
 type ResponseError = HTTPResponse<null>;
