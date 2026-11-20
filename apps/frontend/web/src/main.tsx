@@ -7,10 +7,10 @@ import { useAuthStore } from './stores/auth/use-auth.ts';
 import { getToken } from './utils/auth';
 
 const app = createRoot(document.getElementById('root')!);
-const pathname = window.location.pathname;
+// const pathname = window.location.pathname;
 
-if (getToken() && pathname !== '/login' && pathname !== '/signup')
-  useAuthStore.getState().refreshUser();
+// if (getToken() && pathname !== '/login' && pathname !== '/signup')
+//   useAuthStore.getState().refreshUser();
 
 app.render(
   <StrictMode>

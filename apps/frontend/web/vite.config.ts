@@ -6,6 +6,8 @@ import tailwindcss from '@tailwindcss/vite';
 import react, { reactCompilerPreset } from '@vitejs/plugin-react';
 import { defineConfig, loadEnv } from 'vite';
 
+import { lumaBoot } from './plugin/luma-boot.ts';
+
 const __filename = fileURLToPath(import.meta.url);
 // 创建 esm 的dirname
 const __dirname = dirname(__filename);
@@ -18,6 +20,7 @@ export default defineConfig(({ mode }) => {
       react(),
       babel({ presets: [reactCompilerPreset()] }),
       tailwindcss(),
+      lumaBoot(),
     ],
     resolve: {
       alias: {

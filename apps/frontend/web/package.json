@@ -14,6 +14,7 @@
     "@qingmo/react": "workspace:*",
     "@qingmo/shadcn": "workspace:*",
     "ky": "^2.0.2",
+    "lucide-react": "^1.33.0",
     "react": "catalog:",
     "react-dom": "catalog:",
     "react-hook-form": "^7.86.0",

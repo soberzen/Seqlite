@@ -1,4 +1,4 @@
-import z from 'zod';
+import { z } from 'zod';
 
 import { get } from '../base';
 import type { HTTPResponse } from '../fetch';

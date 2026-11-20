@@ -8,6 +8,204 @@
     'Helvetica', 'Apple Color Emoji', 'Arial', sans-serif, 'Segoe UI Emoji',
     'Segoe UI Symbol';
   --animate-eye-blink: eye-blink 6s ease-in-out infinite;
+  --color-sidebar-search: var(--sidebar-search);
+  --color-canvas-background: var(--canvas-background);
+  --color-white: var(--white);
+  --color-surface-muted: var(--surface-muted);
+  --color-surface-soft: var(--surface-soft);
+  --color-surface-subtle: var(--surface-subtle);
+  --color-surface-raised: var(--surface-raised);
+  --color-surface-warm: var(--surface-warm);
+  --color-surface-hover: var(--surface-hover);
+  --color-surface-recessed: var(--surface-recessed);
+  --color-surface-selected: var(--surface-selected);
+  --color-subtle: var(--subtle);
+  --color-text-secondary: var(--text-secondary);
+  --color-text-tertiary: var(--text-tertiary);
+  --color-text-placeholder: var(--text-placeholder);
+  --color-text-hint: var(--text-hint);
+  --color-icon-disabled: var(--icon-disabled);
+  --color-icon-subtle: var(--icon-subtle);
+  --color-icon-muted: var(--icon-muted);
+  --color-icon-faint: var(--icon-faint);
+  --color-selection: var(--selection);
+  --color-control-active: var(--control-active);
+  --color-destructive-muted-foreground: var(--destructive-muted-foreground);
+  --color-border-strong: var(--border-strong);
+  --color-border-emphasis: var(--border-emphasis);
+  --color-control-border: var(--control-border);
+  --color-checkbox-border: var(--checkbox-border);
+  --color-divider-strong: var(--divider-strong);
+  --color-menu-border: var(--menu-border);
+  --color-destructive-border: var(--destructive-border);
+  --color-dialog-border: var(--dialog-border);
+  --color-dialog-foreground: var(--dialog-foreground);
+  --color-dialog-secondary: var(--dialog-secondary);
+  --color-dialog-muted: var(--dialog-muted);
+  --color-dialog-divider: var(--dialog-divider);
+  --color-input-border: var(--input-border);
+  --color-input-placeholder: var(--input-placeholder);
+  --color-invite-border: var(--invite-border);
+  --color-chip-border: var(--chip-border);
+  --color-chip-background: var(--chip-background);
+  --color-avatar-neutral: var(--avatar-neutral);
+  --color-avatar-foreground: var(--avatar-foreground);
+  --color-overlay: var(--overlay);
+  --color-shadow-soft: var(--shadow-soft);
+  --color-shadow-dialog: var(--shadow-dialog);
+  --color-shadow-panel: var(--shadow-panel);
+  --color-transparent: var(--transparent);
+  --color-transparent-white: var(--transparent-white);
+}
+
+:root {
+  color-scheme: light;
+  --sidebar-search: #f0f0f0;
+
+  /* Surfaces */
+  --background: #ffffff;
+  --sidebar: #fafafa;
+  --canvas-background: #f7f7f7;
+  --white: #ffffff;
+  --surface-muted: #f0f0f0;
+  --surface-soft: #f2f2f2;
+  --surface-subtle: #fafafa;
+  --surface-raised: #fcfcfc;
+  --surface-warm: #eeeeeb;
+  --surface-hover: #efefef;
+  --surface-recessed: #eeeeee;
+  --surface-selected: #ececec;
+
+  /* Text and icons */
+  --foreground: #0a0a0a;
+  --muted-foreground: #737373;
+  --subtle: #a3a3a3;
+  --text-secondary: #525252;
+  --text-tertiary: #929292;
+  --text-placeholder: #8a8a8a;
+  --text-hint: #969696;
+  --icon-disabled: #b0b0b0;
+  --icon-subtle: #b5b5b5;
+  --icon-muted: #9b9b9b;
+  --icon-faint: #c7c7c7;
+
+  /* Actions */
+  --primary: #171717;
+  --primary-foreground: #fafafa;
+  --accent: #f5f5f5;
+  --selection: #ebebeb;
+  --control-active: #ededed;
+  --destructive: #e7000b;
+  --destructive-muted-foreground: #b43c3c;
+
+  /* Borders */
+  --border: #e5e5e5;
+  --border-strong: #d4d4d4;
+  --border-emphasis: #dddddd;
+  --control-border: #e8e8e8;
+  --checkbox-border: #c5c5c5;
+  --divider-strong: #eaeaea;
+  --menu-border: #dedede;
+  --destructive-border: #e9d6d6;
+
+  /* Dialogs and inputs */
+  --dialog-border: #dedee1;
+  --dialog-foreground: #1d1d1f;
+  --dialog-secondary: #5d5d61;
+  --dialog-muted: #8e8e93;
+  --dialog-divider: #d9d9db;
+  --input-border: #e5e5e7;
+  --input-placeholder: #929296;
+  --invite-border: #d9d9d9;
+  --chip-border: #d6d6d8;
+  --chip-background: #eeeeef;
+
+  /* Avatars */
+  --avatar-neutral: #e2e2e2;
+  --avatar-foreground: #626262;
+
+  /* Overlays and shadows */
+  --overlay: #00000026;
+  --shadow-soft: #0000000c;
+  --shadow-dialog: #00000018;
+  --shadow-panel: #00000014;
+  --transparent: #00000000;
+  --transparent-white: #ffffff00;
+}
+
+.dark {
+  color-scheme: dark;
+  --sidebar-search: var(--surface-muted);
+
+  /* Surfaces */
+  --background: #171717;
+  --sidebar: #1c1c1c;
+  --canvas-background: #141414;
+  --white: #ffffff;
+  --surface-muted: #282828;
+  --surface-soft: #252525;
+  --surface-subtle: #202020;
+  --surface-raised: #242424;
+  --surface-warm: #2d2c29;
+  --surface-hover: #303030;
+  --surface-recessed: #1f1f1f;
+  --surface-selected: #383838;
+
+  /* Text and icons */
+  --foreground: #f5f5f5;
+  --muted-foreground: #b0b0b0;
+  --subtle: #969696;
+  --text-secondary: #d4d4d4;
+  --text-tertiary: #a3a3a3;
+  --text-placeholder: #969696;
+  --text-hint: #969696;
+  --icon-disabled: #666666;
+  --icon-subtle: #969696;
+  --icon-muted: #a3a3a3;
+  --icon-faint: #595959;
+
+  /* Actions */
+  --primary: #fafafa;
+  --primary-foreground: #171717;
+  --accent: #2a2a2a;
+  --selection: #383838;
+  --control-active: #3a3a3a;
+  --destructive: #ff8080;
+  --destructive-muted-foreground: #ffb3b3;
+
+  /* Borders */
+  --border: #3a3a3a;
+  --border-strong: #737373;
+  --border-emphasis: #626262;
+  --control-border: #737373;
+  --checkbox-border: #858585;
+  --divider-strong: #343434;
+  --menu-border: #484848;
+  --destructive-border: #402929;
+
+  /* Dialogs and inputs */
+  --dialog-border: #484848;
+  --dialog-foreground: #f5f5f5;
+  --dialog-secondary: #bdbdbd;
+  --dialog-muted: #a3a3a3;
+  --dialog-divider: #484848;
+  --input-border: #737373;
+  --input-placeholder: #969696;
+  --invite-border: #737373;
+  --chip-border: #626262;
+  --chip-background: #343434;
+
+  /* Avatars */
+  --avatar-neutral: #363636;
+  --avatar-foreground: #d4d4d4;
+
+  /* Overlays and shadows */
+  --overlay: #00000099;
+  --shadow-soft: #00000033;
+  --shadow-dialog: #00000066;
+  --shadow-panel: #0000004d;
+  --transparent: #00000000;
+  --transparent-white: #ffffff00;
 }
 
 @keyframes eye-blink {

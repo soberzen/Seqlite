@@ -60,6 +60,7 @@ type DataState =
 
 export type EmojiPickerProps = {
   children: ReactElement;
+  modal?: boolean;
   onSelect: (emoji: string) => void;
   onClear?: () => void;
   value?: string | null;
@@ -143,6 +144,7 @@ function matchesQuery(
 
 export function EmojiPicker({
   children,
+  modal = false,
   onSelect,
   onClear,
   value,
@@ -232,6 +234,7 @@ export function EmojiPicker({
 
   return (
     <Popover
+      modal={modal}
       open={open}
       onOpenChange={handleOpenChange}
     >
